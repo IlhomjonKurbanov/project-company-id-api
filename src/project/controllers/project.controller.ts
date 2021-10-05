@@ -267,10 +267,8 @@ export class ProjectController {
     @Res() res: Response,
   ): Promise<Response> {
     try {
-      const project: IProject | null = await this.projectService.archivateProject(
-        id,
-        status,
-      );
+      const project: IProject | null =
+        await this.projectService.archivateProject(id, status);
       if (project) {
         await this._userService.removeUserFromActiveProject(null, project._id);
       }

@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { StackModule } from './stack/stack.module';
 import { RuleModule } from './rule/rule.module';
@@ -32,6 +31,5 @@ import { MailModule } from './mail/mail.module';
     FeedbacksModule,
     MailModule,
   ],
-  providers: [AppService],
 })
 export class AppModule {}

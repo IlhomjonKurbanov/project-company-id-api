@@ -23,7 +23,7 @@ export class TimelogsService {
 
   public async findTimelog(id: string): Promise<ITimelog | null> {
     return await this._timelogModel
-      .findOne({ _id: Types.ObjectId(id) })
+      .findOne({ _id: new Types.ObjectId(id) })
       .lean()
       .exec();
   }
@@ -35,7 +35,7 @@ export class TimelogsService {
 
     return await this._timelogModel
       .findOneAndUpdate(
-        { _id: Types.ObjectId(id) },
+        { _id: new Types.ObjectId(id) },
         { $set: Dto },
         { new: true },
       )
@@ -47,7 +47,7 @@ export class TimelogsService {
     // tslint:disable-next-line:no-any
   ): Promise<any> {
     return await this._timelogModel
-      .deleteOne({ _id: Types.ObjectId(id) })
+      .deleteOne({ _id: new Types.ObjectId(id) })
       .lean()
       .exec();
   }

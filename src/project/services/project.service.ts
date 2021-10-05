@@ -39,10 +39,10 @@ export class ProjectService {
     let filterByInternal: IFilterProjects = {};
     let filterByStatus: IFilterProjects = {};
     if (uid) {
-      filterByUser = { 'users._id': Types.ObjectId(uid) };
+      filterByUser = { 'users._id': new Types.ObjectId(uid) };
     }
     if (stack) {
-      filterByStack = { stack: Types.ObjectId(stack) };
+      filterByStack = { stack: new Types.ObjectId(stack) };
     }
     if (position === Positions.DEVELOPER) {
       filterByActivity = { isActivity: false };
@@ -148,7 +148,7 @@ export class ProjectService {
     status: ProjectStatus,
   ): Promise<IProject | null> {
     return await this.projectModel.findOneAndUpdate(
-      { _id: Types.ObjectId(_id) },
+      { _id: new Types.ObjectId(_id) },
       [
         {
           $set: {
@@ -181,7 +181,7 @@ export class ProjectService {
     for (const _id of ids) {
       await this._userModel.updateOne(
         {
-          _id: Types.ObjectId(_id),
+          _id: new Types.ObjectId(_id),
           activeProjects: { $ne: projectId },
           projects: { $ne: projectId },
         },
@@ -192,7 +192,7 @@ export class ProjectService {
   public async findById(id: string): Promise<IProject> {
     let filterById: Partial<IFilterProject> = {};
     if (id) {
-      filterById = { _id: Types.ObjectId(id) };
+      filterById = { _id: new Types.ObjectId(id) };
     }
     return (
       await this.projectModel
@@ -248,10 +248,10 @@ export class ProjectService {
     )[0];
   }
 
-  public async findAbsentProjects(id: string): Promise<IProject> {
+  public async findAbsentProjects(id: string): Promise<any> {
     let filterById: Record<string, unknown> = {};
     if (id) {
-      filterById = { 'users._id': { $ne: Types.ObjectId(id) } };
+      filterById = { 'users._id': { $ne: new Types.ObjectId(id) } };
     }
     return await this.projectModel
       .aggregate([
@@ -289,7 +289,7 @@ export class ProjectService {
     // eslint-disable-next-line @typescript-eslint/no-inferrable-types
     isActive: boolean = false,
   ): Promise<Partial<IProject>[]> {
-    const _id: Types.ObjectId = Types.ObjectId(userId);
+    const _id: Types.ObjectId = new Types.ObjectId(userId);
     const article: string = isActive ? 'activeProjects' : 'projects';
     // tslint:disable-next-line:no-any
     const aggregate: any = await this._userModel.aggregate([

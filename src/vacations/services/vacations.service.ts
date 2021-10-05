@@ -74,7 +74,7 @@ export class VacationsService {
       .find({
         status: StatusType.APPROVED,
         type,
-        uid: Types.ObjectId(id),
+        uid: new Types.ObjectId(id),
         date: { $gte: start, $lt: end },
       })
       .count();

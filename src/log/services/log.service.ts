@@ -55,10 +55,10 @@ export class LogService {
     }
 
     if (filterLog.project) {
-      filterByProject = { project: Types.ObjectId(filterLog.project) };
+      filterByProject = { project: new Types.ObjectId(filterLog.project) };
     }
     if (filterLog.uid) {
-      filterByUser = { uid: Types.ObjectId(filterLog.uid) };
+      filterByUser = { uid: new Types.ObjectId(filterLog.uid) };
     }
 
     let timelogs: ITimelog[] = [];
@@ -242,13 +242,13 @@ export class LogService {
       filterByType = { type: parseInt(VacationType[filterLog.type]) };
     }
     if (filterLog.project) {
-      filterByProject = { project: Types.ObjectId(filterLog.project) };
+      filterByProject = { project: new Types.ObjectId(filterLog.project) };
     }
     const date: Date = new Date(filterLog.first);
     const lastDate: Date = this._dateService.getNextDay(filterLog.first);
 
     if (filterLog.uid) {
-      filterByUser = { uid: Types.ObjectId(filterLog.uid) };
+      filterByUser = { uid: new Types.ObjectId(filterLog.uid) };
     }
     let timelogs: ITimelog[] = [];
     let vacations: IVacation[] = [];

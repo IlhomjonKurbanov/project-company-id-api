@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class SignUpDto {
-  @ApiProperty() public readonly name!: string;
+  @ApiProperty()
+  public readonly name!: string;
   @ApiProperty() public readonly lastName!: string;
   @ApiProperty() public readonly avatar!: string;
   @ApiProperty() public readonly dob!: Date;

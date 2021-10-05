@@ -19,7 +19,7 @@ export class StackService {
   public async findStackByUid(_uid: string): Promise<IStack[]> {
     return (
       await this._userModel.aggregate([
-        { $match: { _id: Types.ObjectId(_uid) } },
+        { $match: { _id: new Types.ObjectId(_uid) } },
         {
           $lookup: {
             as: 'projects',

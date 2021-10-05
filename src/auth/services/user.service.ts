@@ -167,11 +167,11 @@ export class UserService {
   }
 
   public async getUser(_id: string): Promise<IUser | null> {
-    return await this._userModel.findOne({ _id: Types.ObjectId(_id) });
+    return await this._userModel.findOne({ _id: new Types.ObjectId(_id) });
   }
   public async archivateUser(_id: string): Promise<IUser | null> {
     return await this._userModel.findOneAndUpdate(
-      { _id: Types.ObjectId(_id) },
+      { _id: new Types.ObjectId(_id) },
       [{ $set: { endDate: new Date() } }, { $set: { activeProjects: [] } }],
       { new: true },
     );
@@ -187,7 +187,7 @@ export class UserService {
           localField: 'projects',
         },
       },
-      { $match: { 'projects.stack': Types.ObjectId(_sid) } },
+      { $match: { 'projects.stack': new Types.ObjectId(_sid) } },
 
       {
         $project: {
@@ -204,7 +204,7 @@ export class UserService {
   public async findUser(_id: string): Promise<IUser<IProject[]>> {
     return (
       await this._userModel.aggregate([
-        { $match: { _id: Types.ObjectId(_id) } },
+        { $match: { _id: new Types.ObjectId(_id) } },
         {
           $lookup: {
             as: 'projects',
@@ -398,7 +398,7 @@ export class UserService {
     projectId: string,
     isActive: boolean = false,
   ): Promise<Partial<IUser>[]> {
-    const _id: Types.ObjectId = Types.ObjectId(projectId);
+    const _id: Types.ObjectId = new Types.ObjectId(projectId);
     const match: Record<string, unknown> = {
       $match: isActive
         ? { endDate: null, projects: { $ne: _id } }
