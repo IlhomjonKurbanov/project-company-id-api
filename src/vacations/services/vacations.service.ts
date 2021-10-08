@@ -4,7 +4,7 @@ import { CreateVacationDto, VacationType } from './../dto/create-vacation.dto';
 import { IVacation } from 'src/vacations/interfaces/vacation.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Document, Types } from 'mongoose';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ChangeStatusDto, StatusType } from '../dto/change-status.dto';
 import moment from 'moment';
 import { IUser } from 'src/auth/interfaces/user.interface';
@@ -65,7 +65,7 @@ export class VacationsService {
   public async availableCount(
     id: string,
     type: VacationType,
-    maxCount: number = 18,
+    maxCount = 18,
   ): Promise<number> {
     const now: Date = new Date();
     const end: Date = moment(now).endOf('year').toDate();
@@ -78,7 +78,6 @@ export class VacationsService {
         date: { $gte: start, $lt: end },
       })
       .count();
-
     return spentCount > maxCount - 1 ? 0 : maxCount - spentCount;
   }
 
@@ -86,7 +85,7 @@ export class VacationsService {
     _id: Types.ObjectId,
     changeStatusDto: ChangeStatusDto,
     owner: IUser,
-  ): Promise<IVacation | null> {
+  ): Promise<IVacation> {
     const { status } = changeStatusDto;
 
     const updatedVacation: IVacation | null = await this._vacationModel
@@ -97,6 +96,9 @@ export class VacationsService {
       )
       .lean()
       .exec();
+    if (!updatedVacation) {
+      throw new NotFoundException('Vacation not found');
+    }
     const user: IUser | null = await this._usersModel.findOne({
       _id: updatedVacation?.uid,
     });
@@ -107,7 +109,7 @@ export class VacationsService {
     const slackOwners: string[] = owners.map(
       (userOwner: IUser) => userOwner.slack,
     );
-    const message: string = `${this.getEmojiFromStatus(
+    const message = `${this.getEmojiFromStatus(
       status,
     )} Your request for ${this.getType(
       updatedVacation?.type,
@@ -136,8 +138,7 @@ export class VacationsService {
     return updatedVacation;
   }
 
-  // tslint:disable-next-line:no-any
-  public async getVacations(): Promise<any[]> {
+  public async getVacations(): Promise<IVacation[]> {
     return await this._vacationModel.aggregate([
       { $match: { status: StatusType.PENDING } },
       {

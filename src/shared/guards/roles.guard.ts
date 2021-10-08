@@ -3,36 +3,39 @@ import {
   CanActivate,
   ExecutionContext,
   HttpException,
-  HttpStatus,
+  ForbiddenException,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   public constructor(public access: IAccess | string[] | string) {}
 
-  public canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
+  private get forbiddenException(): HttpException {
+    return new ForbiddenException('Permission denied');
+  }
+
+  public canActivate(context: ExecutionContext): boolean {
     if (!this.access) {
       return true;
     }
-    // tslint:disable-next-line:no-any
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const req: any = context.switchToHttp().getRequest();
     const { user, query } = req;
+
     const role: string = user.position;
 
-    let hasPermission: boolean = false;
+    let hasPermission = false;
 
     if (typeof this.access === 'string') {
       if (this.access !== role) {
-        throw new HttpException('Permission denied.', HttpStatus.FORBIDDEN);
+        throw this.forbiddenException;
       }
       return true;
     }
     if (Array.isArray(this.access)) {
       if (!this.access.includes(role)) {
-        throw new HttpException('Permission denied.', HttpStatus.FORBIDDEN);
+        throw this.forbiddenException;
       }
       return true;
     }
@@ -50,7 +53,7 @@ export class RolesGuard implements CanActivate {
     }
 
     if (!hasPermission) {
-      throw new HttpException('Permission denied.', HttpStatus.FORBIDDEN);
+      throw this.forbiddenException;
     }
 
     return true;

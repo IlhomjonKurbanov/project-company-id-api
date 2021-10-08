@@ -33,5 +33,6 @@ module.exports = {
     '@typescript-eslint/no-unnecessary-type-constraint': ['error'],
     '@typescript-eslint/no-array-constructor': ['error'],
     '@typescript-eslint/no-invalid-void-type': ['error'],
+    '@typescript-eslint/no-inferrable-types': 'off',
   },
 };

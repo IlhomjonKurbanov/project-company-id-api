@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { IBirthday } from './../interfaces/birthday.interface';
 import { DateService } from './date.service';
 import { InjectModel } from '@nestjs/mongoose';
@@ -9,10 +10,12 @@ import { IHoliday } from '../interfaces/holiday.interface';
 import { ITimelog } from 'src/timelogs/interfaces/timelog.interface';
 import { IVacation } from 'src/vacations/interfaces/vacation.interface';
 import { IUser } from 'src/auth/interfaces/user.interface';
+import { LogResponse } from '../interfaces/log-response.interface';
+import { LogByDate } from '../interfaces/log-by-date-response.interface';
 
 @Injectable()
 export class LogService {
-  private _getUserLookUp: Record<string, unknown> = {
+  private readonly _getUserLookUp: Record<string, unknown> = {
     $lookup: {
       as: 'user',
       foreignField: '_id',
@@ -21,7 +24,7 @@ export class LogService {
     },
   };
 
-  private _getProjectLookUp: Record<string, unknown> = {
+  private readonly _getProjectLookUp: Record<string, unknown> = {
     $lookup: {
       as: 'project',
       foreignField: '_id',
@@ -41,8 +44,8 @@ export class LogService {
     private readonly _holidayModel: Model<IHoliday & Document>,
     private readonly _dateService: DateService,
   ) {}
-  // tslint:disable-next-line: cyclomatic-complexity
-  public async findLogs(filterLog: FilterLogDto): Promise<any> {
+
+  public async findLogs(filterLog: FilterLogDto): Promise<LogResponse> {
     const date: Date = new Date(filterLog.first);
     const lastDate: Date = this._dateService.getLastDate(
       new Date(filterLog.first),
@@ -112,7 +115,6 @@ export class LogService {
         },
       ]);
     }
-    // tslint:disable-next-line: no-any
     let reducedLogs: any[] = [
       ...timelogs,
       ...vacations,
@@ -120,7 +122,6 @@ export class LogService {
       ...birthdays,
     ];
     let vacationDays: number = 0;
-    // tslint:disable-next-line: no-any
     reducedLogs = reducedLogs.reduce((a: any, b: any) => {
       const { time, status, name, fullName } = b;
       const dateType: number = time
@@ -153,7 +154,6 @@ export class LogService {
       return a;
     }, {});
 
-    // tslint:disable-next-line:no-any
     const resultObj: any = {};
 
     let workedOut: number = 0;
@@ -232,8 +232,7 @@ export class LogService {
     };
   }
 
-  // tslint:disable-next-line:no-any
-  public async findLogByDate(filterLog: FilterLogDto): Promise<any> {
+  public async findLogByDate(filterLog: FilterLogDto): Promise<LogByDate[]> {
     let filterByUser: Partial<IFilterLog> = {};
     let filterByType: Partial<IFilterLog> = {};
     let filterByProject: Partial<IFilterLog> = {};

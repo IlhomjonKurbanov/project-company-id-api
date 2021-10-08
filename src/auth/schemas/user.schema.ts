@@ -55,7 +55,7 @@ export const userSchema: Schema = new Schema({
   position: {
     required: true,
     type: String,
-    default: 'Developer',
+    default: 'developer',
   },
   role: {
     required: true,

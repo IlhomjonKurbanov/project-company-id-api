@@ -1,18 +1,21 @@
+import { SignUpDto } from './../dto/signup.dto';
 import {
   Body,
   Controller,
   Post,
   UnauthorizedException,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dto/login.dto';
 import { IUser } from '../interfaces/user.interface';
-import { SignUpDto } from '../dto/signup.dto';
 import { GetUser } from 'src/shared/decorators/get-user.decorator';
 import { MessageResponse } from 'src/shared/interfaces/message-response.interface';
+import { FileInterceptor } from '@nestjs/platform-express';
 // import { RolesGuard } from 'src/shared/guards/roles.guard';
 // import { Positions } from '../enums/positions.enum';
 
@@ -21,15 +24,24 @@ import { MessageResponse } from 'src/shared/interfaces/message-response.interfac
 export class AuthController {
   public constructor(private readonly _authService: AuthService) {}
 
-  // @UseGuards(
-  //   AuthGuard('jwt'),
-  //   new RolesGuard({
-  //     [Positions.OWNER]: [],
-  //   }),
-  // )
+  @Post('pre-signup')
+  public async preSignUp(
+    @Body('email') email: string,
+  ): Promise<MessageResponse> {
+    return await this._authService.preSignUp(email);
+  }
+
   @Post('signup')
-  public async signUp(@Body() createUserDto: SignUpDto): Promise<IUser> {
-    return this._authService.signUp(createUserDto);
+  @UseInterceptors(FileInterceptor('avatar'))
+  public async signUp(
+    @Body() signUpDto: SignUpDto,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<IUser> {
+    const user: IUser = await this._authService.signUp(
+      signUpDto,
+      file.filename,
+    );
+    return user;
   }
 
   @Post('signin')
@@ -37,14 +49,18 @@ export class AuthController {
     return this._authService.signIn(loginUserDto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Post('set-password')
-  public async setPassword(
-    @Body('password') password: string,
-    // tslint:disable-next-line:no-any
-    @GetUser() { email }: { email: string },
+  @Post('forgot-generate')
+  public async forgotGenerate(
+    @Body() { email }: { email: string },
   ): Promise<MessageResponse> {
-    return this._authService.setPassword(email, password);
+    return this._authService.generateForgotPasswordLink(email);
+  }
+
+  @Post('forgot-change')
+  public async forgotChangePassword(
+    @Body() { password, token }: { password: string; token: string },
+  ): Promise<IUser | null> {
+    return this._authService.setPasswordByLink(token, password);
   }
 
   // TODO: post => get

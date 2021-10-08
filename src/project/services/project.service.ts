@@ -1,6 +1,6 @@
 import { ProjectStatus } from './../enums/project-status.enum';
 import { Positions } from 'src/auth/enums/positions.enum';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Document, Types } from 'mongoose';
 import { ProjectFilterDto } from '../dto/filter-projects.dto';
@@ -95,7 +95,7 @@ export class ProjectService {
       ])
       .exec();
   }
-  public async findPortfolio(): Promise<any> {
+  public async findPortfolio(): Promise<Partial<IProject>[]> {
     return await this.projectModel
       .aggregate([
         { $match: { isPortfolio: true } },
@@ -109,8 +109,8 @@ export class ProjectService {
       ])
       .exec();
   }
-  public async findPortfolioId(techId: string): Promise<any> {
-    return await this.projectModel
+  public async findPortfolioById(techId: string): Promise<Partial<IProject>> {
+    const [portfolio] = await this.projectModel
       .aggregate([
         { $match: { techId } },
         {
@@ -141,13 +141,17 @@ export class ProjectService {
         },
       ])
       .exec();
+    if (!portfolio) {
+      throw new NotFoundException('Portfolio not found');
+    }
+    return portfolio;
   }
 
   public async archivateProject(
     _id: string,
     status: ProjectStatus,
-  ): Promise<IProject | null> {
-    return await this.projectModel.findOneAndUpdate(
+  ): Promise<IProject> {
+    const project: IProject | null = await this.projectModel.findOneAndUpdate(
       { _id: new Types.ObjectId(_id) },
       [
         {
@@ -159,6 +163,10 @@ export class ProjectService {
       ],
       { upsert: true, new: true },
     );
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+    return project;
   }
 
   public async createProject(project: CreateProjectDto): Promise<IProject> {
@@ -190,68 +198,78 @@ export class ProjectService {
     }
   }
   public async findById(id: string): Promise<IProject> {
-    let filterById: Partial<IFilterProject> = {};
+    const filterById: Partial<IFilterProject> = {};
     if (id) {
-      filterById = { _id: new Types.ObjectId(id) };
+      filterById._id = new Types.ObjectId(id);
     }
-    return (
-      await this.projectModel
-        .aggregate([
-          { $match: filterById },
-          {
-            $lookup: {
-              from: 'users',
-              localField: '_id',
-              as: 'history',
-              foreignField: 'projects',
-            },
+    const [project] = await this.projectModel
+      .aggregate([
+        { $match: filterById },
+        {
+          $lookup: {
+            from: 'users',
+            localField: '_id',
+            as: 'history',
+            foreignField: 'projects',
           },
-          this.stackLookup,
-          {
-            $lookup: {
-              from: 'users',
-              localField: '_id',
-              as: 'onboard',
-              foreignField: 'activeProjects',
-            },
+        },
+        this.stackLookup,
+        {
+          $lookup: {
+            from: 'users',
+            localField: '_id',
+            as: 'onboard',
+            foreignField: 'activeProjects',
           },
-          {
-            $project: {
-              _id: 1,
-              name: 1,
-              endDate: 1,
-              isInternal: 1,
-              industry: 1,
-              customer: 1,
-              startDate: 1,
-              'onboard._id': 1,
-              'onboard.name': 1,
-              'onboard.lastName': 1,
-              'onboard.position': 1,
-              'onboard.avatar': 1,
-              'onboard.endDate': 1,
-              'history._id': 1,
-              'history.name': 1,
-              'history.lastName': 1,
-              'history.position': 1,
-              'history.endDate': 1,
-              'history.avatar': 1,
-              'stack._id': 1,
-              'stack.name': 1,
-            },
+        },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            endDate: 1,
+            isInternal: 1,
+            industry: 1,
+            customer: 1,
+            startDate: 1,
+            'onboard._id': 1,
+            'onboard.name': 1,
+            'onboard.lastName': 1,
+            'onboard.position': 1,
+            'onboard.avatar': 1,
+            'onboard.endDate': 1,
+            'history._id': 1,
+            'history.name': 1,
+            'history.lastName': 1,
+            'history.position': 1,
+            'history.endDate': 1,
+            'history.avatar': 1,
+            'stack._id': 1,
+            'stack.name': 1,
           },
-          {
-            $sort: { endDate: 1, isInternal: 1, isActivity: 1 },
-          },
-        ])
-        .exec()
-    )[0];
+        },
+        {
+          $sort: { endDate: 1, isInternal: 1, isActivity: 1 },
+        },
+      ])
+      .exec();
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+    project.history?.sort((a: IUser, b: IUser) =>
+      a.endDate ? 1 : b.endDate ? -1 : 0,
+    );
+    project.history?.sort((a: IUser, b: IUser) =>
+      a.endDate ? 1 : b.endDate ? -1 : 0,
+    );
+    return project;
   }
 
-  public async findAbsentProjects(id: string): Promise<any> {
+  public async findAbsentProjects(
+    id: Types.ObjectId,
+  ): Promise<Partial<IProject>[]> {
     let filterById: Record<string, unknown> = {};
     if (id) {
-      filterById = { 'users._id': { $ne: new Types.ObjectId(id) } };
+      filterById = { 'users._id': { $ne: id } };
     }
     return await this.projectModel
       .aggregate([
@@ -285,14 +303,11 @@ export class ProjectService {
   }
 
   public async findProjectFor(
-    userId: string,
-    // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+    _id: Types.ObjectId,
     isActive: boolean = false,
   ): Promise<Partial<IProject>[]> {
-    const _id: Types.ObjectId = new Types.ObjectId(userId);
     const article: string = isActive ? 'activeProjects' : 'projects';
-    // tslint:disable-next-line:no-any
-    const aggregate: any = await this._userModel.aggregate([
+    const [user] = await this._userModel.aggregate([
       { $match: { _id } },
       {
         $lookup: {
@@ -320,12 +335,15 @@ export class ProjectService {
         $sort: { endDate: 1, isInternal: 1 },
       },
     ]);
-    aggregate[0][article].sort((a: IProject, b: IProject) =>
+    if (!user) {
+      throw new NotFoundException();
+    }
+    user[article].sort((a: IProject, b: IProject) =>
       a.endDate ? 1 : b.endDate ? -1 : 0,
     );
-    aggregate[0][article].sort((a: IProject, b: IProject) =>
+    user[article].sort((a: IProject, b: IProject) =>
       a.isInternal ? 1 : b.isInternal ? -1 : 0,
     );
-    return aggregate[0][article];
+    return user[article];
   }
 }

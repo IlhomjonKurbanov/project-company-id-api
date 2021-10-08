@@ -1,5 +1,5 @@
 import { IFacilities } from '../interfaces/facilities.interface';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Document } from 'mongoose';
 @Injectable()
@@ -10,7 +10,6 @@ export class FacilitiesService {
   ) {}
 
   public async findFacilities(): Promise<IFacilities[]> {
-    // return await this.facilitiesModel.find().lean().exec();
     return await this.facilitiesModel.aggregate([
       { $match: {} },
       {
@@ -23,9 +22,8 @@ export class FacilitiesService {
       },
     ]);
   }
-  public async findFacility(facility: string): Promise<IFacilities | null> {
-    // tslint:disable-next-line:no-any
-    const service: IFacilities[] = await this.facilitiesModel.aggregate([
+  public async findFacility(facility: string): Promise<IFacilities> {
+    const [service] = await this.facilitiesModel.aggregate([
       { $match: { name: facility } },
       {
         $lookup: {
@@ -44,7 +42,9 @@ export class FacilitiesService {
         },
       },
     ]);
-    return service[0];
-    // return await this.facilitiesModel.findOne({ name: facility });
+    if (!service) {
+      throw new NotFoundException('facility not found');
+    }
+    return service;
   }
 }
