@@ -45,10 +45,11 @@ export class AuthService {
       throw new BadRequestException('Token invalid or expired');
     }
     const hash: string = await bcrypt.hash(password, 10);
-    return this._userModel.findOneAndUpdate(
+    await this._userModel.updateOne(
       { email: payload.email },
       { $set: { password: hash } },
     );
+    return this.getUser(payload.email);
   }
 
   public createToken(
