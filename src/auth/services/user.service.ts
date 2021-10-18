@@ -79,6 +79,7 @@ export class UserService {
       },
     ]);
   }
+
   public async getManagement(): Promise<IUser[]> {
     return this._userModel.aggregate([
       { $match: { isShown: true } },
@@ -277,7 +278,7 @@ export class UserService {
               isInternal: '$projects.isInternal',
             },
           },
-
+          vacationCount: { $first: '$vacationCount' },
           stack: { $push: '$projects.stack' },
         },
       },
@@ -300,6 +301,7 @@ export class UserService {
           github: { $first: '$github' },
           englishLevel: { $first: '$englishLevel' },
           email: { $first: '$email' },
+          vacationCount: { $first: '$vacationCount' },
           activeProjects: { $first: '$activeProjects' },
           projects: {
             $push: {
@@ -357,6 +359,7 @@ export class UserService {
           position: { $first: '$position' },
           phone: { $first: '$phone' },
           skype: { $first: '$skype' },
+          vacationCount: { $first: '$vacationCount' },
           slack: { $first: '$slack' },
           dob: { $first: '$dob' },
           github: { $first: '$github' },
@@ -394,6 +397,7 @@ export class UserService {
           skype: { $first: '$skype' },
           slack: { $first: '$slack' },
           dob: { $first: '$dob' },
+          vacationCount: { $first: '$vacationCount' },
           github: { $first: '$github' },
           englishLevel: { $first: '$englishLevel' },
           email: { $first: '$email' },

@@ -74,6 +74,10 @@ export const userSchema: Schema = new Schema({
     required: false,
     type: String,
   },
+  vacationCount: {
+    required: true,
+    type: Number,
+  },
   isShown: {
     required: false,
     type: Boolean,

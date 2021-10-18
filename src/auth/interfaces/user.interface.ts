@@ -23,4 +23,5 @@ export interface IUser<P = Types.ObjectId[], R = string> {
   slack: string;
   post?: string;
   isShown?: boolean;
+  vacationCount: number;
 }

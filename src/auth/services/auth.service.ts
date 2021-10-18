@@ -84,6 +84,7 @@ export class AuthService {
           position: { $first: '$position' },
           password: { $first: '$password' },
           accessToken: { $first: '$accessToken' },
+          vacationCount: { $first: '$vacationCount' },
           endDate: { $first: '$endDate' },
         },
       },

@@ -4,7 +4,11 @@ import { CreateVacationDto, VacationType } from './../dto/create-vacation.dto';
 import { IVacation } from 'src/vacations/interfaces/vacation.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Document, Types } from 'mongoose';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ChangeStatusDto, StatusType } from '../dto/change-status.dto';
 import moment from 'moment';
 import { IUser } from 'src/auth/interfaces/user.interface';
@@ -26,6 +30,9 @@ export class VacationsService {
     const user: IUser | null = await this._usersModel.findOne({
       _id: createVacationDto.uid,
     });
+    if (!user) {
+      throw new NotFoundException('User not fuond');
+    }
     const owners: ISlack[] = await this._usersModel.aggregate([
       { $match: { position: Positions.OWNER } },
       {
@@ -37,6 +44,26 @@ export class VacationsService {
 
     const slackOwners: string[] = owners.map((item: ISlack) => item.slack);
     const type: number = parseInt(VacationType[createVacationDto.type]);
+    if (type === 1) {
+      const availableCount: number | undefined = await this.availableCount(
+        createVacationDto.uid.toString(),
+        VacationType.VacationPaid,
+        user.vacationCount,
+      );
+      if (availableCount < 1) {
+        throw new BadRequestException('You dont have more paid vacations');
+      }
+    }
+    if (type === 3) {
+      const availableCount: number | undefined = await this.availableCount(
+        createVacationDto.uid.toString(),
+        VacationType.SickPaid,
+        5,
+      );
+      if (availableCount < 1) {
+        throw new BadRequestException('You dont have more paid sick days');
+      }
+    }
     const vacation: IVacation = await this._vacationModel.create({
       ...createVacationDto,
       status: StatusType.PENDING,
