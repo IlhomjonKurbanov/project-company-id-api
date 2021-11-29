@@ -70,12 +70,23 @@ export const userSchema: Schema = new Schema({
     required: false,
     type: Date,
   },
+  startDate: {
+    required: true,
+    type: Date,
+  },
   post: {
     required: false,
     type: String,
   },
   vacationCount: {
     required: true,
+    type: Number,
+  },
+  evaluationDate: {
+    required: true,
+    type: Date,
+  },
+  salary: {
     type: Number,
   },
   isShown: {

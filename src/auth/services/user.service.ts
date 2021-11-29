@@ -1,3 +1,4 @@
+import { EvaluationDateDto } from './../dto/evaluation-date.dto';
 import { SignUpDto } from './../dto/signup.dto';
 import {
   BadRequestException,
@@ -184,9 +185,23 @@ export class UserService {
     return { message: 'User has been removed from active project' };
   }
 
+  public async changeEvaluationDate(
+    _id: Types.ObjectId | null,
+    { date, salary }: EvaluationDateDto,
+  ): Promise<MessageResponse> {
+    await this._userModel.updateOne(
+      { _id },
+      {
+        $set: { evaluationDate: new Date(date), salary },
+      },
+    );
+    return { message: 'Evaluation date and salary has been changed' };
+  }
+
   public async getUser(_id: string): Promise<IUser | null> {
     return await this._userModel.findOne({ _id: new Types.ObjectId(_id) });
   }
+
   public async archivateUser(_id: string): Promise<IUser> {
     const user: IUser | null = await this._userModel.findOneAndUpdate(
       { _id: new Types.ObjectId(_id) },
@@ -279,6 +294,9 @@ export class UserService {
             },
           },
           vacationCount: { $first: '$vacationCount' },
+          evaluationDate: { $first: '$evaluationDate' },
+          startDate: { $first: '$startDate' },
+          salary: { $first: '$salary' },
           stack: { $push: '$projects.stack' },
         },
       },
@@ -303,6 +321,9 @@ export class UserService {
           email: { $first: '$email' },
           vacationCount: { $first: '$vacationCount' },
           activeProjects: { $first: '$activeProjects' },
+          evaluationDate: { $first: '$evaluationDate' },
+          startDate: { $first: '$startDate' },
+          salary: { $first: '$salary' },
           projects: {
             $push: {
               _id: '$project._id',
@@ -360,6 +381,9 @@ export class UserService {
           phone: { $first: '$phone' },
           skype: { $first: '$skype' },
           vacationCount: { $first: '$vacationCount' },
+          evaluationDate: { $first: '$evaluationDate' },
+          startDate: { $first: '$startDate' },
+          salary: { $first: '$salary' },
           slack: { $first: '$slack' },
           dob: { $first: '$dob' },
           github: { $first: '$github' },
@@ -398,6 +422,9 @@ export class UserService {
           slack: { $first: '$slack' },
           dob: { $first: '$dob' },
           vacationCount: { $first: '$vacationCount' },
+          evaluationDate: { $first: '$evaluationDate' },
+          startDate: { $first: '$startDate' },
+          salary: { $first: '$salary' },
           github: { $first: '$github' },
           englishLevel: { $first: '$englishLevel' },
           email: { $first: '$email' },

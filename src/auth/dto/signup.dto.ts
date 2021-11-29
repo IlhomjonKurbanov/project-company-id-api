@@ -11,6 +11,7 @@ export class SignUpDto {
   @ApiProperty() public readonly position!: string;
   @ApiProperty() public readonly role!: string;
   @ApiProperty() public readonly skype!: string;
+  @ApiProperty() public readonly startDate?: Date;
   @ApiPropertyOptional() public readonly slack!: string;
   @ApiPropertyOptional() public readonly token!: string;
 }

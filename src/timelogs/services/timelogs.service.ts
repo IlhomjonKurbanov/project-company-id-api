@@ -2,7 +2,11 @@ import { MessageResponse } from './../../shared/interfaces/message-response.inte
 import { ChangeTimelogDto } from './../dto/change-timelog.dto';
 import { CreateTimelogDto } from './../dto/create-timelog.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Model, Document, Types } from 'mongoose';
 import { ITimelog } from './../interfaces/timelog.interface';
 
@@ -19,6 +23,9 @@ export class TimelogsService {
       project: Types.ObjectId;
     },
   ): Promise<ITimelog> {
+    if (new Date(createTimelogDto.date).getMonth() < new Date().getMonth()) {
+      throw new BadRequestException("You can't track time on past month");
+    }
     return await this._timelogModel.create(createTimelogDto);
   }
 

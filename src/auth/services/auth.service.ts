@@ -154,6 +154,7 @@ export class AuthService {
     const accessToken: string = this.createToken(email, Tokens.ACCESS);
     return this.createUser({
       ...createUserDto,
+      startDate: new Date(),
       accessToken,
       email,
       avatar,

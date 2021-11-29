@@ -11,6 +11,7 @@ import {
   Delete,
   Put,
   Res,
+  Body,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -24,6 +25,7 @@ import { VacationType } from 'src/vacations/dto/create-vacation.dto';
 import { MessageResponse } from 'src/shared/interfaces/message-response.interface';
 import { GetUser } from 'src/shared/decorators/get-user.decorator';
 import { Response } from 'express';
+import { EvaluationDateDto } from '../dto/evaluation-date.dto';
 
 @ApiTags('user')
 @Controller('user')
@@ -78,6 +80,15 @@ export class UserController {
     @Param('projectId', ParseObjectIdPipe) projectId: Types.ObjectId,
   ): Promise<MessageResponse> {
     return this._userService.removeUserFromActiveProject(uid, projectId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), new RolesGuard(Positions.OWNER))
+  @Post(':uid/evaldate')
+  public async changeEvaluationDate(
+    @Param('uid', ParseObjectIdPipe) uid: Types.ObjectId,
+    @Body() body: EvaluationDateDto,
+  ): Promise<MessageResponse> {
+    return this._userService.changeEvaluationDate(uid, body);
   }
 
   @UseGuards(AuthGuard('jwt'))

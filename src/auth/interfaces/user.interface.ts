@@ -7,6 +7,8 @@ export interface IUser<P = Types.ObjectId[], R = string> {
   lastName: string;
   role: string;
   dob: Date;
+  evaluationDate: Date;
+  startDate: Date;
   englishLevel: string;
   password?: string;
   github: string;
